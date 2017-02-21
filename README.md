@@ -2,6 +2,10 @@
 personal study for aiohttp based web server framework
 
 
+安装可能缺失的开发包:
+
+    sudo apt install  python3.5-dev
+
 安装虚拟环境软件 python3-env:
 
     apt-get install python3-venv
@@ -18,18 +22,29 @@ personal study for aiohttp based web server framework
 
 安装包:
 
+    pip install --upgrade pip
     pip3 install aiohttp
     pip3 install aiohttp_debugtoolbar
-    pip install aiomysql
-    pip install aioredis
-    pip install pyyaml
+    pip3 install uvloop
+    pip3 install cchardet
+    pip3 install aiodns
+    pip3 install aiomysql
+    pip3 install aioredis
+    pip3 install pyyaml
     pip3 install setproctitle
     
 建立到本resp的软链接:
     
     ln -s ../p3_server/ api
     
-建立配置文件夹和配置文件(使用自己的配置信息替换示例值):
+建立配置文件夹和配置文件:
+
+    cd api
+    mkdir config
+    cd config
+    touch server.yaml
+
+填写配置文件server.yaml(使用自己的配置信息替换示例值):
 
     port: 8092
     debug: false
