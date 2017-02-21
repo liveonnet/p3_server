@@ -6,8 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+*.swp
+*~
+
 # Distribution / packaging
 .Python
+config/
 env/
 build/
 develop-eggs/
