@@ -5,6 +5,8 @@ import time
 #-#from datetime import datetime
 from aiohttp import web
 from asyncio import CancelledError
+#-#from asyncio import iscoroutine
+from asyncio import iscoroutinefunction
 from applib.tools_lib import CJsonEncoder
 from applib.conf_lib import conf
 from applib.db_lib import MySqlManager
@@ -82,12 +84,16 @@ class BaseHandler(object):
         request['common'] = CommonHandler(request)
         method = request.method.lower()
         func = getattr(self, method)
+        resp = None
         try:
             if func:
-                try:
-                    resp = await func(request)
-                except CancelledError:
-                    info('user canceled')
+                resp = func(request)
+                if iscoroutinefunction(func):
+                    try:
+                        resp = await resp
+                    except CancelledError:
+                        info('user canceled')
+                        resp = web.Response(text="")
             else:
                 warn('func %s not found in %s', method, self)
                 resp = web.Response(text='hehe')
