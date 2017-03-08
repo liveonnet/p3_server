@@ -6,12 +6,14 @@ from aiohttp import web
 #-#from asyncio import sleep
 from applib.tools_lib import pcformat
 from applib.handler_lib import BaseHandler
+from applib.handler_lib import route
 from applib.cache_lib import K
 from applib.applog import app_log
 info, debug, error, warn = app_log.info, app_log.debug, app_log.error, app_log.warning
 pcformat
 
 
+@route('/user/{uid}')
 class TestHandler(BaseHandler):
     def __init__(self):
         super().__init__()
@@ -42,6 +44,7 @@ class TestHandler(BaseHandler):
 #-#        return web.Response(text="this is aio project.")
 
 
+@route('/empty')
 class EmptyHandler(BaseHandler):
     async def get(self, request):
         return web.Response(text='ok')

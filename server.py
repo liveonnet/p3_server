@@ -11,9 +11,8 @@ import uvloop
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 from aiohttp import web
 from applib.conf_lib import conf
-#-#from applib.handler_lib import BaseHandler
-from model.test_handler import TestHandler
-from model.test_handler import EmptyHandler
+from applib.load_handler import setup_routes
+from middleware import l_middleware
 from applib.db_lib import MySqlManager
 from applib.cache_lib import RedisManager
 from applib.tools_lib import pcformat
@@ -55,10 +54,10 @@ async def on_cleanup(app):
     info('cleaning up done')
 
 if conf['debug']:
-    app = web.Application(loop=loop, middlewares=[toolbar_middleware_factory])
+    app = web.Application(loop=loop, middlewares=[toolbar_middleware_factory] + l_middleware)
     aiohttp_debugtoolbar.setup(app)
 else:
-    app = web.Application(loop=loop)
+    app = web.Application(loop=loop, middlewares=l_middleware)
 
 
 app.on_startup.append(on_startup)
@@ -67,19 +66,11 @@ app.on_shutdown.append(on_shutdown)
 app.on_cleanup.append(on_cleanup)
 app['config'] = conf
 info('conf: %s', pcformat(app['config']))
-#-#test_hdl = TestHandler()
-#-#app.router.add_get('/', test_hdl.handle)
-#-#app.router.add_get('/{name}', test_hdl.handle)
 
-app.router.add_route('*', '/user/{uid}', TestHandler().handle)
-app.router.add_route('*', '/empty', EmptyHandler().handle)
-
-#-#app.router.add_get('/user/xxx', test_hdl.get)
-#-#app.router.add_static('/prefix', path_to_static_folder, show_index=True, follow_symlinks=True)
 #-#info('resources: ')
 #-#for _r in app.router.resources():
 #-#    info('\t%s', _r)
+setup_routes(app)
 
-web.run_app(app, port=conf['port'], access_log=app_log, access_log_format='[code %s] %t [pid %P] [remote %a] [resp %b/%O] "%r" %D microseconds')
-#-#web.run_app(app, host='127.0.0.1', port=int(sys.argv[1]))
+web.run_app(app, host=conf['host'], port=conf['port'], access_log=app_log, access_log_format='[code %s] %t [pid %P] [remote %a] [resp %b/%O] "%r" %D microseconds')
 

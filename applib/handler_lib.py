@@ -1,5 +1,6 @@
 import json
 from functools import partial
+#-#from functools import wraps
 import time
 #-#from datetime import date
 #-#from datetime import datetime
@@ -17,6 +18,8 @@ conf
 
 
 class CommonHandler(object):
+    """资源管理类
+    """
     def __init__(self, req):
         self.request = req
         self.db = {}
@@ -67,7 +70,37 @@ class CommonHandler(object):
 dumpsex = partial(json.dumps, cls=CJsonEncoder)
 
 
+#-#def route(method, path):
+#-#    def decorator(func):
+#-#        @wraps(func)
+#-#        def wrapper(*args, **kw):
+#-#            return func(*args, **kw)
+#-#        wrapper.__method__ = method
+#-#        wrapper.__route__ = path
+#-#        return wrapper
+#-#    return decorator
+
+
+def route(path):
+    u'''设置接口处理类的路径(修改类属性 ``PATH`` )
+    '''
+    def wrapper(cls):
+        cls.PATH = path
+        return cls
+    return wrapper
+
+
 class BaseHandler(object):
+    """请求的基类
+
+    根据不同http类型请求调用相应的响应函数
+    GET 获取/查询
+    POST 创建
+    PUT 更新(提供所有字段信息)
+    PATCH 更新(提供部分字段信息)
+    DELETE 删除
+
+    """
     def writeJson(self, obj, code=0, msg=''):
         """返回json格式数据
         """
