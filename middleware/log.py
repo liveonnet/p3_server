@@ -6,7 +6,7 @@ async def logger_factory(app, handler):
     """
     async def logger(request):
         # 记录日志
-        info('Request: %s %s' % (request.method, request.path))
+        info('Request: %s %s %s', request.method, request.path, request._match_info)
         # 继续处理请求
         return await handler(request)
     return logger

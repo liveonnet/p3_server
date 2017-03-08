@@ -14,7 +14,7 @@ pcformat
 
 
 @route('/user/{uid}')
-class TestHandler(BaseHandler):
+class UserHandler(BaseHandler):
     def __init__(self):
         super().__init__()
         # uc -ACNqse "select uid from z_user" > /tmp/1.csv
@@ -48,3 +48,9 @@ class TestHandler(BaseHandler):
 class EmptyHandler(BaseHandler):
     async def get(self, request):
         return web.Response(text='ok')
+
+
+@route('/test')
+class TestHandler(BaseHandler):
+    async def get(self, request):
+        return web.Response(text='test ok')
