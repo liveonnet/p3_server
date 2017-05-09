@@ -18,9 +18,9 @@ class UserHandler(BaseHandler):
     def __init__(self):
         super().__init__()
         # uc -ACNqse "select uid from z_user" > /tmp/1.csv
-        self.l_uid = [int(x) for x in open('/tmp/1.csv').read().split('\n') if x]
-        self.l_uid = self.l_uid[:400]
-        info('l_uid %s', len(self.l_uid))
+#-#        self.l_uid = [int(x) for x in open('/tmp/1.csv').read().split('\n') if x]
+#-#        self.l_uid = self.l_uid[:400]
+#-#        info('l_uid %s', len(self.l_uid))
 
     async def get(self, request):
 #-#        uid = request.match_info.get('uid', '0')
@@ -53,4 +53,15 @@ class EmptyHandler(BaseHandler):
 @route('/test')
 class TestHandler(BaseHandler):
     async def get(self, request):
+        return web.Response(text='test ok')
+
+
+@route('/wx')
+class TestHandler(BaseHandler):
+    async def get(self, request):
+        info(request.rel_url.query)
+        info(request.has_body)
+        if request.has_body:
+            p = await request.post()
+            info('post data %s', p)
         return web.Response(text='test ok')

@@ -9,6 +9,7 @@ import setproctitle
 import asyncio
 import uvloop
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+import ssl
 from aiohttp import web
 from applib.conf_lib import conf
 from applib.load_handler import setup_routes
@@ -65,12 +66,15 @@ app.on_response_prepare.append(on_prepare)
 app.on_shutdown.append(on_shutdown)
 app.on_cleanup.append(on_cleanup)
 app['config'] = conf
-info('conf: %s', pcformat(app['config']))
+#-#info('conf: %s', pcformat(app['config']))
 
 #-#info('resources: ')
 #-#for _r in app.router.resources():
 #-#    info('\t%s', _r)
 setup_routes(app)
 
-web.run_app(app, host=conf['host'], port=conf['port'], access_log=app_log, access_log_format='[code %s] %t [pid %P] [remote %a] [resp %b/%O] "%r" %D microseconds')
+#-#ssl_context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+#-#ssl_context.load_cert_chain(conf['ssl_crt'], conf['ssl_key'])  # load certificate and private key data
+#-#web.run_app(app, host=conf['host'], port=conf['port'], ssl_context=ssl_context, access_log=app_log, access_log_format='[code %s] %t [pid %P] [remote %{X-Real-Ip}i] [resp %b/%O] "%r" %D microseconds')
+web.run_app(app, host=conf['host'], port=conf['port'], access_log=app_log, access_log_format='[code %s] %t [pid %P] [remote %{X-Real-Ip}i] [resp %b/%O] "%r" %D microseconds')
 

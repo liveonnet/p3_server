@@ -1,5 +1,6 @@
 import json
 from functools import partial
+#-#from urllib.parse import parse_qsl
 #-#from functools import wraps
 import time
 #-#from datetime import date
@@ -115,6 +116,7 @@ class BaseHandler(object):
         '''
         a = time.time()
         request['common'] = CommonHandler(request)
+#-#        request['q'] = dict((_k, _v[0]) for _k, _v in parse_qsl(request.query_string)) if request.query_string else {}  # 解析query string
         method = request.method.lower()
         func = getattr(self, method)
         resp = None
