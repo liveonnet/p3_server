@@ -11,14 +11,14 @@ import uvloop
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 #-#import ssl
 from aiohttp import web
-from applib.conf_lib import conf
-from applib.load_handler import setup_routes
+from lib.conf_lib import conf
+from lib.load_handler import setup_routes
 from middleware import l_middleware
-from applib.db_lib import MySqlManager
-from applib.cache_lib import RedisManager
-from applib.tools_lib import pcformat
+from lib.db_lib import MySqlManager
+from lib.cache_lib import RedisManager
+from lib.tools_lib import pcformat
 pcformat
-from applib.applog import app_log
+from lib.applog import app_log
 info, debug, error, warn = app_log.info, app_log.debug, app_log.error, app_log.warning
 
 setproctitle.setproctitle(conf['proc_title'])  # change process name...

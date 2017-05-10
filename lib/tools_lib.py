@@ -28,7 +28,7 @@ if __name__ == '__main__':
 #-#from lib.redis_manager import m_redis
 #-#from lib.mysql_manager_rw import mmysql_rw
 #-#from tornado.options import options as _options
-from applib.applog import app_log
+from lib.applog import app_log
 info, debug, error, warn = app_log.info, app_log.debug, app_log.error, app_log.warning
 
 
@@ -42,6 +42,9 @@ class CJsonEncoder(json.JSONEncoder):
             return obj.strftime('%Y-%m-%d')
         else:
             return json.JSONEncoder.default(self, obj)
+
+
+dumpsex = partial(json.dumps, cls=CJsonEncoder)
 
 
 class Tools(object):
@@ -402,6 +405,10 @@ class ArgValidator(object):
     '''
     PATTERN_SCHEMA = re.compile(r"^([^ \f\n\r\t\v()&]+)(\(.*\))?(&.*)?$")
 
+    def __init__(self, req):
+        self.arg_data = None
+#-#        info('ArgValidator init done')
+
     def add_arg_validator(self, arg_name, schema, add=True):
         u'''获取一个验证参数 ``arg_name`` 的 ``schema``
 
@@ -598,8 +605,8 @@ class ArgValidator(object):
         '''
         try:
             strict = kwargs.get('strict', True)
-#-#            info('self.arg_data %s', pcformat(self.arg_data))
-#-#            info('%s', ArgValidator.ARG_VALIDATOR)
+            info('self.arg_data %s', pcformat(self.arg_data))
+            info('%s', ArgValidator.ARG_VALIDATOR)
             l_rslt, l_err = [], []
             for _arg_name in args:
                 _arg_name = _arg_name.strip()
@@ -704,12 +711,42 @@ ArgValidator.BASE_VALIDATOR = {'int': ArgValidator.int_vt,
                                }
 
 
+def to_byte(arg):
+    return bytes(arg, 'utf8') if isinstance(arg, str) else arg
+
+
+def to_bytes(*args):
+    return list(map(lambda x: bytes(x, 'utf8') if isinstance(x, str) else x, args))
+
+
 def get_wx_auth(token, timestamp, nonce):
-    return sha1(b''.join(sorted((bytes(token, 'utf8'), bytes(timestamp, 'utf8'), bytes(nonce, 'utf8'))))).hexdigest()
+    return sha1(b''.join(sorted(to_bytes(token, timestamp, nonce)))).hexdigest()
 
 
 def check_wx_auth(token, timestamp, nonce, sig):
     return sig == get_wx_auth(token, timestamp, nonce)
+
+
+class InitCoroMixin(object):
+    """ Mixin for create initialization coroutine
+
+    https://github.com/zzzsochi/aiohttp_traversal/blob/798aba0862e2a47467438dcfb2cf46a5433216bf/aiohttp_traversal/ext/resources.py#L41
+    """
+    def __new__(cls, *args, **kwargs):
+        """ This is magic!
+        """
+        instance = super().__new__(cls)
+
+        async def coro():
+            instance.__init__(*args, **kwargs)
+            await instance.__ainit__()
+            return instance
+
+        return coro()
+
+    async def __ainit__(self):
+        raise NotImplementedError
+
 
 if __name__ == '__main__':
 #-#    ArgValidator.add_arg_validator('uid', 'int(10000000,99999999)&required&default=None')

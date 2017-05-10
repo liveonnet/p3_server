@@ -15,11 +15,11 @@ if __name__ == '__main__':
     import sys
     import os
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-from applib.conf_lib import conf
-from applib.WXBizMsgCrypt import WXBizMsgCrypt
-from applib.tools_lib import pcformat
-from applib.tools_lib import parseXml2Dict
-from applib.applog import app_log
+from lib.conf_lib import conf
+from lib.WXBizMsgCrypt import WXBizMsgCrypt
+from lib.tools_lib import pcformat
+from lib.tools_lib import parseXml2Dict
+from lib.applog import app_log
 info, debug, error = app_log.info, app_log.debug, app_log.error
 
 
@@ -594,7 +594,7 @@ class WXManager(object):
         return await self.kfSendMsg(data)
 
 if __name__ == '__main__':
-    from applib.handler_lib import CommonHandler
+    from lib.handler_lib import CommonHandler
 
     async def test_main(loop):
         conf['loop'] = loop

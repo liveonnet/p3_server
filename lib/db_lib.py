@@ -7,9 +7,9 @@ import aiomysql
 from asyncio import sleep
 from asyncio import Lock
 from asyncio import wait_for
-from applib.conf_lib import conf
-from applib.tools_lib import pcformat
-from applib.applog import app_log
+from lib.conf_lib import conf
+from lib.tools_lib import pcformat
+from lib.applog import app_log
 info, debug, error, warn = app_log.info, app_log.debug, app_log.error, app_log.warning
 pcformat
 

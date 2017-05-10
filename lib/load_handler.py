@@ -1,8 +1,8 @@
 import os
 import inspect
 import importlib
-from applib.handler_lib import BaseHandler
-from applib.applog import app_log
+from lib.handler_lib import BaseHandler
+from lib.applog import app_log
 info, debug, error, warn = app_log.info, app_log.debug, app_log.error, app_log.warning
 
 
@@ -42,4 +42,4 @@ def setup_routes(app):
                     for _class in (x for x in map(lambda x: getattr(mod, x),
                                                   filter(lambda x: not x.startswith('_'), dir(mod))) if inspect.isclass(x) and x is not BaseHandler and issubclass(x, BaseHandler)):
                         info('add_router %s %s', repr(_class.PATH), _class)
-                        app.router.add_route('*', _class.PATH, _class().handle)
+                        app.router.add_route('*', _class.PATH, _class)

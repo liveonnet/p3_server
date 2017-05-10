@@ -23,8 +23,10 @@ if __name__ == '__main__':
     import os
     import sys
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-from applib.tools_lib import pcformat
-from applib.applog import app_log
+from lib.tools_lib import pcformat
+from lib.tools_lib import to_byte
+from lib.tools_lib import to_bytes
+from lib.applog import app_log
 info, debug, error = app_log.info, app_log.debug, app_log.error
 pcformat
 
@@ -59,14 +61,6 @@ class FormatException(Exception):
 def throw_exception(message, exception_class=FormatException):
     """my define raise exception function"""
     raise exception_class(message)
-
-
-def to_byte(arg):
-    return bytes(arg, 'utf8') if isinstance(arg, str) else arg
-
-
-def to_bytes(*args):
-    return list(map(lambda x: bytes(x, 'utf8') if isinstance(x, str) else x, args))
 
 
 def to_str(arg):
@@ -309,7 +303,7 @@ if __name__ == '__main__':
     import os
     import sys
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-    from applib.conf_lib import conf
+    from lib.conf_lib import conf
 
     appid = conf['wx_appid']
     sEncodingAESKey = conf['wx_encodingaeskey']
