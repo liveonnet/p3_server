@@ -5,11 +5,11 @@
 import json
 from datetime import date
 import aioredis
-from asyncio import sleep
+#-#from asyncio import sleep
 from asyncio import Lock
-from asyncio import wait_for
-from asyncio import TimeoutError
-from asyncio import Task
+#-#from asyncio import wait_for
+#-#from asyncio import TimeoutError
+#-#from asyncio import Task
 from applib.conf_lib import conf
 from applib.tools_lib import pcformat
 from applib.tools_lib import CJsonEncoder
@@ -115,6 +115,26 @@ class Redis(object):
                     error('name %s key %s', name, key, exc_info=True)
         return s
 
+    async def getHashObjMultiValue(self, name, l_key):
+        """取名为 ``name`` 的hash中多个key的值，以列表形式返回。``l_key`` 为包含多个key的列表
+        支持值为非字符串对象
+        """
+        l_s = await self.conn.hmget(name, l_key)
+        l_rslt = []
+        for _i, s in enumerate(l_s):
+            if s:
+                try:
+                    s = json.loads(s)
+                except:
+                    try:
+                        _tmp = s.replace("'", '"')
+                        s = json.loads(_tmp)
+                    except:
+                        s = None
+                        error('name %s key %s', name, l_key[_i], exc_info=True)
+            l_rslt.append(s)
+        return l_rslt
+
     async def setHashObjValue(self, name, key, value, ex=None):
         """设置名为 ``name`` 的hash中key为 ``key`` 的值为 ``value``
         支持值为非字符串对象
@@ -170,6 +190,7 @@ class RedisManager(object):
                 pool = RedisManager.POOL.get(redis_name)
                 if not pool:
                     cfg = conf['cache'][redis_name]
+                    info('loop: %s', conf['loop'])
                     pool = await aioredis.create_pool((cfg['host'], cfg['port']), db=cfg['db'], password=cfg['password'] or None, minsize=0, maxsize=500, loop=conf['loop'])
                     RedisManager.POOL[redis_name] = pool
 

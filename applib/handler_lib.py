@@ -9,22 +9,42 @@ from aiohttp import web
 from asyncio import CancelledError
 #-#from asyncio import iscoroutine
 from asyncio import iscoroutinefunction
+from applib.tools_lib import ArgValidator
 from applib.tools_lib import CJsonEncoder
+from applib.tools_lib import pcformat
+from applib.err_lib import ErrManager
 from applib.conf_lib import conf
 from applib.db_lib import MySqlManager
 from applib.cache_lib import RedisManager
 from applib.applog import app_log
 info, debug, error, warn = app_log.info, app_log.debug, app_log.error, app_log.warning
 conf
+pcformat
 
 
-class CommonHandler(object):
+class CommonHandler(ArgValidator):
     """资源管理类
+
+    每个请求包含一个自己的CommonHandler实例
     """
-    def __init__(self, req):
-        self.request = req
+    def __init__(self, req, req_hdl):
+        self.req = req  # 关联的请求
+        self.req_hdl = req_hdl  # 关联请求的处理类，一般为本实例的引用类
         self.db = {}
         self.cache = {}
+        self.arg_data = {}  # 获取到的参数，不区分get/post
+        self.err = ErrManager()
+
+    async def get_args(self):
+        q = self.req.rel_url.query
+        if q:
+#-#            info('get data %s', pcformat(q))
+            self.arg_data.update(q)
+        q = await self.req.post()
+        if q:
+#-#            info('post data %s', pcformat(q))
+            self.arg_data.update(q)
+#-#        info('args: %s', pcformat(self.arg_data))
 
     async def getDB(self, db_name='default'):
         """维护本次请求用到的数据库连接
@@ -37,7 +57,7 @@ class CommonHandler(object):
             info('hit per-request conn %s', conn_obj)
         return conn_obj
 
-    async def getCache(self, cache_name):
+    async def getCache(self, cache_name='default'):
         """维护本次请求用到的缓存连接
         """
         conn_obj = self.cache.get(cache_name)
@@ -94,6 +114,8 @@ def route(path):
 class BaseHandler(object):
     """请求的基类
 
+    注意，此类的实例会被不同请求同时使用，因此不要把各请求的局部变量放入实例变量中，否则会相互覆盖
+
     根据不同http类型请求调用相应的响应函数
     GET 获取/查询
     POST 创建
@@ -115,8 +137,10 @@ class BaseHandler(object):
         保证资源释放
         '''
         a = time.time()
-        request['common'] = CommonHandler(request)
-#-#        request['q'] = dict((_k, _v[0]) for _k, _v in parse_qsl(request.query_string)) if request.query_string else {}  # 解析query string
+        # 取参数
+        request['common'] = CommonHandler(request, self)
+        await request['common'].get_args()
+
         method = request.method.lower()
         func = getattr(self, method)
         resp = None
@@ -133,6 +157,11 @@ class BaseHandler(object):
                 warn('func %s not found in %s', method, self)
                 resp = web.Response(text='hehe')
         finally:
+            if 'wx_mgr' in request:  # 微信处理类
+                try:
+                    await request['wx_mgr'].clean()
+                except:
+                    error('clean wx_mgr error', exc_info=True)
             request['common'].clean()
             info('%.3fms', (time.time() - a) * 1000)
 

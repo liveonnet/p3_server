@@ -4,6 +4,7 @@ import sys
 #-#sys.setdefaultencoding('utf8')
 import json
 from datetime import date
+from hashlib import sha1
 #-#import urllib2
 #-#from urllib import urlencode
 #-#from itertools import count
@@ -22,8 +23,8 @@ if __name__ == '__main__':
 #-#    import sys
     import os
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-    import server_conf
-    server_conf
+#-#    import server_conf
+#-#    server_conf
 #-#from lib.redis_manager import m_redis
 #-#from lib.mysql_manager_rw import mmysql_rw
 #-#from tornado.options import options as _options
@@ -33,6 +34,7 @@ info, debug, error, warn = app_log.info, app_log.debug, app_log.error, app_log.w
 
 #升级json中的日期处理
 class CJsonEncoder(json.JSONEncoder):
+
     def default(self, obj):
         if isinstance(obj, datetime):
             return obj.strftime('%Y-%m-%d %H:%M:%S')
@@ -257,6 +259,7 @@ pcformat = pp.pformat
 
 
 class MyBreak(Exception):
+
     u'''用于从深层逻辑中直接退出
     '''
     pass
@@ -376,6 +379,7 @@ def str2_str_list(s, sep=','):
 
 
 class ArgValidator(object):
+
     u'''简单的参数获取验证器
     封装参数获取、验证、转换的细节
 
@@ -543,6 +547,22 @@ class ArgValidator(object):
         return True, value
 
     @staticmethod
+    def bytes_vt(value, min_len=None, max_len=None, safe=True):
+        try:
+            if not isinstance(value, bytes):
+                value = bytes(value, 'utf8')
+            if safe:
+                # TODO
+                value = bytes(value or '', 'utf8')
+            if min_len is not None and len(value) < min_len:
+                return False, ''
+            if max_len is not None and len(value) > max_len:
+                return False, ''
+        except:
+            return False, ''
+        return True, value
+
+    @staticmethod
     def uid_vt(value):
 #-#        info('校验 uid %s %s', type(value), value)
         try:
@@ -578,6 +598,7 @@ class ArgValidator(object):
         '''
         try:
             strict = kwargs.get('strict', True)
+#-#            info('self.arg_data %s', pcformat(self.arg_data))
 #-#            info('%s', ArgValidator.ARG_VALIDATOR)
             l_rslt, l_err = [], []
             for _arg_name in args:
@@ -589,18 +610,22 @@ class ArgValidator(object):
 #-#                    info('\tfound special schema %s', _arg_vt)
                 else:
                     _arg_vt = None
-                # 优化:
-                # 对MY_AUTH为2的接口，因为执行到这里说明已经登陆成功，因此不校验这几个参数
-                # 对MY_AUTH为1的接口，self.current_user为非空代表登陆成功，也不校验这几个参数
-                if _arg_name in ('device_id', 'uid', 'pnum', 'pw', 'callback') and \
-                        (self.__class__.MY_AUTH == 2 or (self.__class__.MY_AUTH == 1 and self.current_user)):
-                    _arg_value = getattr(self, 'my_' + _arg_name, None)
-#-#                    info('跳过检查 %s %s', _arg_name, _arg_value)
-                    l_rslt.append(_arg_value)
-                    continue
-                else:
-                    _arg_value = self.post_data.get(_arg_name)
+#-#                # 优化:
+#-#                # 对MY_AUTH为2的接口，因为执行到这里说明已经登陆成功，因此不校验这几个参数
+#-#                # 对MY_AUTH为1的接口，self.current_user为非空代表登陆成功，也不校验这几个参数
+#-#                if _arg_name in ('device_id', 'uid', 'pnum', 'pw', 'callback') and \
+#-#                        (self.__class__.MY_AUTH == 2 or (self.__class__.MY_AUTH == 1 and self.current_user)):
+#-#                    _arg_value = getattr(self, 'my_' + _arg_name, None)
+#-##-#                    info('跳过检查 %s %s', _arg_name, _arg_value)
+#-#                    l_rslt.append(_arg_value)
+#-#                    continue
+#-#                else:
+#-#                    _arg_value = self.post_data.get(_arg_name)
+                _arg_value = self.arg_data.get(_arg_name)
+#-#                info('arg_data %s, find name %s', pcformat(self.arg_data), _arg_name)
+
                 dft_vt = ArgValidator.ARG_VALIDATOR.get(_arg_name)
+#-#                info('arg_vt %s dft_vt %s', _arg_vt, dft_vt)
                 old_len = len(l_rslt)  # 用于判断是否在下面的校验中添加过参数值了
                 for _vt in chain(*(vt for vt in ((_arg_vt, ), dft_vt) if vt)):
                     if not _vt:
@@ -614,8 +639,8 @@ class ArgValidator(object):
                                 l_rslt.append(None)
                                 if strict:
                                     l_rslt.extend((None for _ in range(len(args) - len(l_rslt))))  # 用None补齐参数
-                                    if hasattr(self, 'writeS'):
-                                        self.writeS({}, self.err._ERR_INVALID_ARG, u'参数不正确')
+                                    if getattr(self, 'req_hdl') and hasattr(self.req_hdl, 'writeJson'):
+                                        self.req_hdl.writeJson(None, self.err._ERR_INVALID_ARG, '参数不正确')
                                     raise MyBreak()
                                 break
                             #  有默认值
@@ -636,8 +661,8 @@ class ArgValidator(object):
                             l_rslt.append(_vt['default'] if 'default' in _vt else None)
                             if strict:  # and 'default' not in _vt:
                                 l_rslt.extend((None for _ in range(len(args) - len(l_rslt))))  # 用None补齐参数
-                                if hasattr(self, 'writeS'):
-                                    self.writeS({}, self.err._ERR_INVALID_ARG, u'参数不正确')
+                                if getattr(self, 'req_hdl') and hasattr(self.req_hdl, 'writeJson'):
+                                    self.req_hdl.writeJson(None, self.err._ERR_INVALID_ARG, '参数不正确')
                                 raise MyBreak()
                             break
                         else:
@@ -678,6 +703,13 @@ ArgValidator.BASE_VALIDATOR = {'int': ArgValidator.int_vt,
                                'str': ArgValidator.str_vt,
                                }
 
+
+def get_wx_auth(token, timestamp, nonce):
+    return sha1(b''.join(sorted((bytes(token, 'utf8'), bytes(timestamp, 'utf8'), bytes(nonce, 'utf8'))))).hexdigest()
+
+
+def check_wx_auth(token, timestamp, nonce, sig):
+    return sig == get_wx_auth(token, timestamp, nonce)
 
 if __name__ == '__main__':
 #-#    ArgValidator.add_arg_validator('uid', 'int(10000000,99999999)&required&default=None')

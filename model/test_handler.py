@@ -1,10 +1,12 @@
 #-#from aiohttp import web
 #-#from asyncio import CancelledError
-#-#from random import randrange
-from random import choice
+from random import randrange
+#-#from random import choice
 from aiohttp import web
 #-#from asyncio import sleep
 from applib.tools_lib import pcformat
+#-#from applib.tools_lib import check_wx_auth
+#-#from applib.tools_lib import get_wx_auth
 from applib.handler_lib import BaseHandler
 from applib.handler_lib import route
 from applib.cache_lib import K
@@ -24,9 +26,9 @@ class UserHandler(BaseHandler):
 
     async def get(self, request):
 #-#        uid = request.match_info.get('uid', '0')
-#-#        uid = randrange(10000000, 99999999)
+        uid = randrange(10000000, 99999999)
 
-        uid = choice(self.l_uid)
+#-#        uid = choice(self.l_uid)
         c_k = K._UINFO_ + str(uid)
         r = await request['common'].getCache('ad')
         data = await r.getObj(c_k)
@@ -56,12 +58,3 @@ class TestHandler(BaseHandler):
         return web.Response(text='test ok')
 
 
-@route('/wx')
-class TestHandler(BaseHandler):
-    async def get(self, request):
-        info(request.rel_url.query)
-        info(request.has_body)
-        if request.has_body:
-            p = await request.post()
-            info('post data %s', p)
-        return web.Response(text='test ok')

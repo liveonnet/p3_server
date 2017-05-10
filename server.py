@@ -9,7 +9,7 @@ import setproctitle
 import asyncio
 import uvloop
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-import ssl
+#-#import ssl
 from aiohttp import web
 from applib.conf_lib import conf
 from applib.load_handler import setup_routes
@@ -65,8 +65,8 @@ app.on_startup.append(on_startup)
 app.on_response_prepare.append(on_prepare)
 app.on_shutdown.append(on_shutdown)
 app.on_cleanup.append(on_cleanup)
-app['config'] = conf
-#-#info('conf: %s', pcformat(app['config']))
+app['cfg'] = conf
+#-#info('conf: %s', pcformat(app['cfg']))
 
 #-#info('resources: ')
 #-#for _r in app.router.resources():

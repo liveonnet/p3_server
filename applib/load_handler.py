@@ -28,8 +28,8 @@ def setup_routes(app):
         if is_package(_dirpath) and _filenames:
             # 得到包名
             pkg_name = _dirpath[len(base_path) + len(os.sep):].replace('/', '.') or 'model'
-            _filenames = filter(lambda x: x.startswith('test_') and x.endswith('.py'), _filenames)
-            #得到非test_开头的py文件列表，依次作为模块导入
+            _filenames = filter(lambda x: x.endswith('_handler.py'), _filenames)
+            #得到handler结尾的py文件列表，依次作为模块导入
             for _file in _filenames:
                 try:
                     mod = importlib.import_module('%s.%s' % (pkg_name, os.path.splitext(_file)[0]), pkg_name)
