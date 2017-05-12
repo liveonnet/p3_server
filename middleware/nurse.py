@@ -10,22 +10,18 @@ async def nurse_handler_factory(app, handler):
     """解析参数, 资源释放
     """
     async def nurse_handler(request):
-        assert issubclass(handler, BaseHandler)
 #-#        info('process begin')
-        a = time()
-        hdl = handler(request)
-#-#        info('handler created')
-        await hdl.get_args()
-#-#        info('get_args done')
-        resp = await hdl
-#-#        info('process done')
-        if hdl.ch:
-            await hdl.ch.clean()
-#-#            info('commom clean done')
-        if hdl.wx_mgr:
-            await hdl.wx_mgr.clean()
-#-#            info('wx mgr clean done')
-        info('%.3fms', (time() - a) * 1000)
-        return resp
+        if issubclass(handler, BaseHandler):
+            a = time()
+#-#            x = handler.mro()
+#-#            info('%s mro\n%s', handler, '\n'.join(map(str, x)))
+            hdl = handler(request)  # handler created
+            await hdl.get_args()  # get_args done
+            resp = await hdl  # process done
+            await hdl.clean()
+            info('%.3fms', (time() - a) * 1000)
+            return resp
+        else:
+            return await handler(request)
     return nurse_handler
 

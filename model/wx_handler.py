@@ -23,8 +23,13 @@ class WxHandler(BaseHandler):
         super().__init__(req)
         self.wx_mgr = WXManager(conf['loop'], self)
 
+    async def clean(self):
+        await super().clean()
+        await self.wx_mgr.clean()
+#-#        info('wx_mgr clean done')
+
     async def get(self):
-        (sig, timestamp, nonce, echostr), l_err = self.av.get_my_arg('signature', 'timestamp', 'nonce', 'echostr')
+        (sig, timestamp, nonce, echostr), l_err = self.get_my_arg('signature', 'timestamp', 'nonce', 'echostr')
         token = conf['wx_token']
         if check_wx_auth(token, timestamp, nonce, sig):
             info('auth ok!')
@@ -34,7 +39,7 @@ class WxHandler(BaseHandler):
         return web.Response(text='auth failed!')
 
     async def post(self):
-        (nonce, encrypt_type, msg_sign, timestamp), l_err = self.av.get_my_arg('nonce required&bytes', 'encrypt_type required&bytes', 'msg_signature required&bytes', 'timestamp required&bytes')
+        (nonce, encrypt_type, msg_sign, timestamp), l_err = self.get_my_arg('nonce required&bytes', 'encrypt_type required&bytes', 'msg_signature required&bytes', 'timestamp required&bytes')
         d = self.wx_mgr.extractXml(nonce, encrypt_type, msg_sign, timestamp, await self.request.text())
 #-#        info('decrypted msg:\n%s', pcformat(d))
         message_type = d['MsgType']  # text/event

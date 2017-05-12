@@ -406,7 +406,8 @@ class ArgValidator(object):
     PATTERN_SCHEMA = re.compile(r"^([^ \f\n\r\t\v()&]+)(\(.*\))?(&.*)?$")
 
     def __init__(self, req):
-        self.arg_data = None
+        super().__init__(req)
+        self.arg_data = {}  # 获取到的参数，不区分get/post
 #-#        info('ArgValidator init done')
 
     def add_arg_validator(self, arg_name, schema, add=True):
@@ -605,8 +606,8 @@ class ArgValidator(object):
         '''
         try:
             strict = kwargs.get('strict', True)
-            info('self.arg_data %s', pcformat(self.arg_data))
-            info('%s', ArgValidator.ARG_VALIDATOR)
+#-#            info('self.arg_data %s', pcformat(self.arg_data))
+#-#            info('%s', ArgValidator.ARG_VALIDATOR)
             l_rslt, l_err = [], []
             for _arg_name in args:
                 _arg_name = _arg_name.strip()
@@ -687,28 +688,30 @@ class ArgValidator(object):
 
 
 #  默认的校验器
-ArgValidator.ARG_VALIDATOR = {'device_id': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
-                              'pnum': [{'vt': ArgValidator.pnum_vt, 'default': ''}, ],
-                              'pw': [{'default': ''}, ],
-                              'uid': [{'vt': ArgValidator.uid_vt, 'default': 0}],
-                              'os_type': [{'vt': partial(ArgValidator.re_vt, p_re=re.compile('^(android)|(ios)$')), 'default': ''}, ],
-                              'app_version': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
-                              'os_version': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
-                              'channel:': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
-                              'ic': [{'default': ''}, ],
-                              'app_id': [{'vt': ArgValidator.str_vt, 'default': '0'}, ],
-                              'token': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
-                              'imsi': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
-                              'callback': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
-                              }
+ArgValidator.ARG_VALIDATOR = {
+    'device_id': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
+    'pnum': [{'vt': ArgValidator.pnum_vt, 'default': ''}, ],
+    'pw': [{'default': ''}, ],
+    'uid': [{'vt': ArgValidator.uid_vt, 'default': 0}],
+    'os_type': [{'vt': partial(ArgValidator.re_vt, p_re=re.compile('^(android)|(ios)$')), 'default': ''}, ],
+    'app_version': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
+    'os_version': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
+    'channel:': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
+    'ic': [{'default': ''}, ],
+    'app_id': [{'vt': ArgValidator.str_vt, 'default': '0'}, ],
+    'token': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
+    'imsi': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
+    'callback': [{'vt': ArgValidator.str_vt, 'default': ''}, ],
+}
 
 # 可用的基础校验器
-ArgValidator.BASE_VALIDATOR = {'int': ArgValidator.int_vt,
-                               'bool': ArgValidator.type_vt(bool),
-                               '+int': partial(ArgValidator.int_vt, start=1),
-                               're': ArgValidator.re_vt,
-                               'str': ArgValidator.str_vt,
-                               }
+ArgValidator.BASE_VALIDATOR = {
+    'int': ArgValidator.int_vt,
+    'bool': ArgValidator.type_vt(bool),
+    '+int': partial(ArgValidator.int_vt, start=1),
+    're': ArgValidator.re_vt,
+    'str': ArgValidator.str_vt,
+}
 
 
 def to_byte(arg):
@@ -728,6 +731,7 @@ def check_wx_auth(token, timestamp, nonce, sig):
 
 
 class InitCoroMixin(object):
+
     """ Mixin for create initialization coroutine
 
     https://github.com/zzzsochi/aiohttp_traversal/blob/798aba0862e2a47467438dcfb2cf46a5433216bf/aiohttp_traversal/ext/resources.py#L41

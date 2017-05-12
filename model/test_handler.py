@@ -5,7 +5,7 @@ from random import randrange
 from aiohttp import web
 #-#from asyncio import sleep
 from lib.tools_lib import pcformat
-#-#from aiohttp.web import View
+from aiohttp.web import View
 #-#from lib.tools_lib import check_wx_auth
 #-#from lib.tools_lib import get_wx_auth
 from lib.handler_lib import BaseHandler
@@ -47,7 +47,7 @@ class UserHandler(BaseHandler):
 
 
 @route('/empty')
-class EmptyHandler(BaseHandler):
+class EmptyHandler(View):
     async def get(self):
         info('hehe %s', id(self))
 #-#        info('self %s', pcformat(dir(self.request)))

@@ -30,12 +30,9 @@ class CommonHandler(object):
     每个请求包含一个自己的CommonHandler实例
     """
     def __init__(self, req):
-#-#        super().__init__(req)
-#-#        self.req = req  # 关联的请求
-#-#        self.req_hdl = req_hdl  # 关联请求的处理类，一般为本实例的引用类
+        super().__init__(req)
         self.db = {}
         self.cache = {}
-#-#        self.arg_data = {}  # 获取到的参数，不区分get/post
         self.err = ErrManager()
         self.wx_mgr = None  # 微信处理类
 #-#        info('common handler done')
@@ -82,7 +79,7 @@ class CommonHandler(object):
                 RedisManager.releaseConn(_cache_name, _conn)
 
 
-class BaseHandler(View):
+class BaseHandler(ArgValidator, CommonHandler, View):
     """请求的基类
 
     注意，此类的实例会被不同请求同时使用，因此不要把各请求的局部变量放入实例变量中，否则会相互覆盖
@@ -97,9 +94,6 @@ class BaseHandler(View):
     """
     def __init__(self, req):
         super().__init__(req)
-        self.arg_data = {}  # 获取到的参数，不区分get/post
-        self.av = ArgValidator(req)
-        self.ch = CommonHandler(req)
         self.wx_mgr = None
 #-#        info('BaseHandler init done')
 
@@ -112,8 +106,7 @@ class BaseHandler(View):
         if q:
 #-#            info('post data %s', pcformat(q))
             self.arg_data.update(q)
-        self.av.arg_data = self.arg_data  # Ugly !!!
-        info('args: %s', pcformat(self.arg_data))
+#-#        info('args: %s', pcformat(self.arg_data))
 
     def writeJson(self, obj, code=0, msg=''):
         """返回json格式数据
