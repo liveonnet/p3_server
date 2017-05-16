@@ -603,7 +603,9 @@ class ArgValidator(object):
         **return**
          * ``l_arg`` 与输入的 ``args`` 顺序相同的校验/转换后的参数值列表
          * ``l_err``  与输入的 ``args`` 顺序相同的校验/转换 错误描述
+         * ``resp``  出错情况下的返回
         '''
+        resp = None
         try:
             strict = kwargs.get('strict', True)
 #-#            info('self.arg_data %s', pcformat(self.arg_data))
@@ -647,8 +649,8 @@ class ArgValidator(object):
                                 l_rslt.append(None)
                                 if strict:
                                     l_rslt.extend((None for _ in range(len(args) - len(l_rslt))))  # 用None补齐参数
-                                    if getattr(self, 'req_hdl') and hasattr(self.req_hdl, 'writeJson'):
-                                        self.req_hdl.writeJson(None, self.err._ERR_INVALID_ARG, '参数不正确')
+                                    if hasattr(self, 'writeJson'):
+                                        resp = self.writeJson(None, self.err._ERR_INVALID_ARG, '参数不正确')
                                     raise MyBreak()
                                 break
                             #  有默认值
@@ -669,8 +671,8 @@ class ArgValidator(object):
                             l_rslt.append(_vt['default'] if 'default' in _vt else None)
                             if strict:  # and 'default' not in _vt:
                                 l_rslt.extend((None for _ in range(len(args) - len(l_rslt))))  # 用None补齐参数
-                                if getattr(self, 'req_hdl') and hasattr(self.req_hdl, 'writeJson'):
-                                    self.req_hdl.writeJson(None, self.err._ERR_INVALID_ARG, '参数不正确')
+                                if hasattr(self, 'writeJson'):
+                                    resp = self.writeJson(None, self.err._ERR_INVALID_ARG, '参数不正确')
                                 raise MyBreak()
                             break
                         else:
@@ -684,7 +686,7 @@ class ArgValidator(object):
         except:
             error('', exc_info=True)
 #-#        info('\nargs %s\nrtn  %s %s', pcformat(args), pcformat(l_rslt), pcformat(l_err))
-        return l_rslt, l_err
+        return l_rslt, l_err, resp
 
 
 #  默认的校验器
@@ -766,16 +768,16 @@ if __name__ == '__main__':
 #-#    x.post_data = {'os_type': 'android'}
 #-#    x.post_data = {"token": "246158926f12e26a2430ef4f33db9670", "channel": "", "app_version": "3.0.0", "device_id": "866445025879258", "os_version": "4.4.2", "os_type": "android", "app_package_name": "com.happy.lock", "imsi": ""}
     x.post_data = {"screen_width": "720", "app_version": "3.0.0.0", "login_way": "", "device_id": "866445025879156", "net": "WIFI", "country_code": "CN", "os_version": "4.4.4", "os_type": "android", "appvc": "3000000", "bssid": "70:f9:6d:61:75:70", "device_name": "HM+NOTE+1LTE", "token": "c0596df7e45f73b6441d6e746793c0ee", "pnum": "", "screen_layout_size": "2", "app_package_name": "com.happy.lock", "ssid": "dianjoy", "screen_density": "320", "pw": "", "language": "zh", "imsi": "", "channel": "share", "re_time": "1457325389013", "screen_height": "1280"}
-#-#    a, b = ArgValidator.get_my_arg(x, 'device_id', 'uid', 'some default=False')
-#-#    a, b = ArgValidator.get_my_arg(x, 'os_type')
+#-#    a, b, _ = ArgValidator.get_my_arg(x, 'device_id', 'uid', 'some default=False')
+#-#    a, b, _ = ArgValidator.get_my_arg(x, 'os_type')
 #-#    (pnum, password, device_id, device_imsi, os_type, channel, app_version, os_version, app_package_name, invite_code, token, ticket), l_err = \
-#-#    l_rslt, l_err = ArgValidator.get_my_arg(x, 'pnum default=0', 'pw', 'device_id required', 'imsi', 'os_type required', 'channel required', 'app_version required', 'os_version required', 'app_package_name required', 'ic', 'token', 'ticket', 'callback')
+#-#    l_rslt, l_err, _ = ArgValidator.get_my_arg(x, 'pnum default=0', 'pw', 'device_id required', 'imsi', 'os_type required', 'channel required', 'app_version required', 'os_version required', 'app_package_name required', 'ic', 'token', 'ticket', 'callback')
 
     x.post_data = {'item_type': 'xx'}
-#-#    l_rslt, l_err = x.get_my_arg('uid int&default=0')
-    l_rslt, l_err = x.get_my_arg('item_type re(re.compile(r"^(news)|(img)|(ad)$"))&default=""')
+#-#    l_rslt, l_err, _ = x.get_my_arg('uid int&default=0')
+    l_rslt, l_err, _ = x.get_my_arg('item_type re(re.compile(r"^(news)|(img)|(ad)$"))&default=""')
     info('rslt: %s  err %s', l_rslt, l_err)
-    l_rslt, l_err = x.get_my_arg('duration int&default=0')
+    l_rslt, l_err, _ = x.get_my_arg('duration int&default=0')
     info('rslt: %s  err %s', l_rslt, l_err)
     sys.exit(0)
 #-#    print Tools.checkIDCard('440524188001010014')

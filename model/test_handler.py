@@ -49,7 +49,7 @@ class UserHandler(BaseHandler):
 @route('/empty')
 class EmptyHandler(View):
     async def get(self):
-        info('hehe %s', id(self))
+#-#        info('hehe %s', id(self))
 #-#        info('self %s', pcformat(dir(self.request)))
 #-#        info(pcformat(list(x for x in dir(self) if not x.startswith('_'))))
         return web.Response(text='ok')

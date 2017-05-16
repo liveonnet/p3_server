@@ -29,7 +29,9 @@ class WxHandler(BaseHandler):
 #-#        info('wx_mgr clean done')
 
     async def get(self):
-        (sig, timestamp, nonce, echostr), l_err = self.get_my_arg('signature', 'timestamp', 'nonce', 'echostr')
+        (sig, timestamp, nonce, echostr), l_err, resp = self.get_my_arg('signature required', 'timestamp required', 'nonce required', 'echostr required')
+        if l_err:
+            return resp
         token = conf['wx_token']
         if check_wx_auth(token, timestamp, nonce, sig):
             info('auth ok!')
@@ -39,7 +41,9 @@ class WxHandler(BaseHandler):
         return web.Response(text='auth failed!')
 
     async def post(self):
-        (nonce, encrypt_type, msg_sign, timestamp), l_err = self.get_my_arg('nonce required&bytes', 'encrypt_type required&bytes', 'msg_signature required&bytes', 'timestamp required&bytes')
+        (nonce, encrypt_type, msg_sign, timestamp), l_err, resp = self.get_my_arg('nonce required&bytes', 'encrypt_type required&bytes', 'msg_signature required&bytes', 'timestamp required&bytes')
+        if l_err:
+            return resp
         d = self.wx_mgr.extractXml(nonce, encrypt_type, msg_sign, timestamp, await self.request.text())
 #-#        info('decrypted msg:\n%s', pcformat(d))
         message_type = d['MsgType']  # text/event
@@ -77,6 +81,8 @@ class WxHandler(BaseHandler):
 #-#            pass
         else:
             ret_data = (in_data['Content'] + ', ' if in_data['Content'] else '') + 'yeah, got it~'
+            ret_data += '\nhttps://blog.liveonnet.cn/'
+            ret_data += '\nhttps://liveonnet.cn/'
         return ret_type, ret_data
 
     async def getAutoReply(self, timestamp, nonce, encrypt_type, msg_sign, in_data):
